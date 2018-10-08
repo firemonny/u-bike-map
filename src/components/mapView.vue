@@ -6,12 +6,13 @@
 </template>
 <script>
 import { mapActions, mapGetters } from "vuex";
+import moment from "moment-timezone";
+const TAIPEI_TIMEZONE = "Asia/Taipei";
 
 export default {
   name: "map-view",
   data() {
     return {
-      text: "Hello",
       map: null,
       ubikesLayer: null,
       docksLayer: null,
@@ -20,26 +21,21 @@ export default {
   },
   mounted() {
     this.initMap();
-    this.initUbikesInfo();
-    this.initDocksInfo();
+    this.initbikesStationsInfo();
   },
   computed: {
-    ...mapGetters(["ubikesInfo", "docksInfo"])
+    ...mapGetters(["bikeStationsInfo"])
   },
   watch: {
-    ubikesInfo() {
-      if (this.ubikesInfo != null) {
-        this.drawGeoJson(this.ubikesInfo, this.ubikesLayer);
-      }
-    },
-    docksInfo() {
-      if (this.docksInfo != null) {
-        // console.log(this.docksInfo);
+    bikeStationsInfo() {
+      if (this.bikeStationsInfo != null) {
+        console.log(this.bikeStationsInfo);
+        this.drawGeoJson(this.bikeStationsInfo, this.ubikesLayer);
       }
     }
   },
   methods: {
-    ...mapActions(["initUbikesInfo", "initDocksInfo"]),
+    ...mapActions(["initbikesStationsInfo"]),
     initMap() {
       this.map = new google.maps.Map(document.getElementById("map"), {
         center: { lat: 25.0552145, lng: 121.5132907 },
@@ -50,7 +46,10 @@ export default {
           this.mapPopout.close();
         }
         let result = e.feature.getProperty("result");
-        let time = e.feature.getProperty("time");
+        let rawtime = e.feature.getProperty("time");
+        let time = moment(rawtime)
+          .tz(TAIPEI_TIMEZONE)
+          .format("llll");
         let name = e.feature.getProperty("ar");
         let html = `<p>站點:${name}<br>更新時間:${time}<br>可租車輛:${result}</p>`;
         let infowindow = new google.maps.InfoWindow();
@@ -68,8 +67,8 @@ export default {
       });
     },
     setPointStyle(feature) {
-      let result = feature.getProperty("result");
-      let pointColor = this.geoJsonColor(result);
+      let youbikeNum = feature.getProperty("youbikeNum");
+      let pointColor = this.geoJsonColor(youbikeNum);
       return {
         icon: {
           path: google.maps.SymbolPath.CIRCLE,
