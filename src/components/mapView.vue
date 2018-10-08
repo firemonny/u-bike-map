@@ -45,13 +45,13 @@ export default {
         if (this.mapPopout) {
           this.mapPopout.close();
         }
-        let result = e.feature.getProperty("result");
+        let youbikeNum = e.feature.getProperty("youbikeNum");
         let rawtime = e.feature.getProperty("time");
         let time = moment(rawtime)
           .tz(TAIPEI_TIMEZONE)
           .format("llll");
         let name = e.feature.getProperty("ar");
-        let html = `<p>站點:${name}<br>更新時間:${time}<br>可租車輛:${result}</p>`;
+        let html = `<p>站點:${name}<br>更新時間:${time}<br>可租車輛:${youbikeNum}</p>`;
         let infowindow = new google.maps.InfoWindow();
         infowindow.setContent(html); // show the html variable in the infowindow
         infowindow.setPosition(e.feature.getGeometry().get()); // anchor the infowindow at the marker
