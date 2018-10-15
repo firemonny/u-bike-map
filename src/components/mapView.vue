@@ -10,10 +10,11 @@ import { mapActions, mapGetters } from "vuex";
 import moment from "moment-timezone";
 import axios from "axios";
 import heatmapButton from "./heatmapButton";
-const timeFormat = "YYYYMMDDhhmmss";
+const timeFormat = "YYYYMMDDHHmmss";
 const zerobaseFormat = "YYYYMMDD000000";
 const TAIPEI_TIMEZONE = "Asia/Taipei";
 const currentTimeZone = "America/Edmonton";
+
 export default {
   name: "map-view",
   data() {
@@ -23,6 +24,7 @@ export default {
       docksLayer: null,
       mapPopout: false,
       heatmap: null,
+      heatmapIntervalId: null,
       dataIndex: 0
     };
   },
@@ -40,23 +42,7 @@ export default {
   watch: {
     bikeStationsInfo() {
       if (this.bikeStationsInfo != null) {
-        //this.drawGeoJson(this.bikeStationsInfo, this.ubikesLayer);
-        let arrayName = this.generateDate();
-        setInterval(() => {
-          if (this.dataIndex < 10) {
-            this.getGeoJsonFromFile(arrayName[this.dataIndex]).then(res => {
-              if (!this.heatmap) {
-                this.drawHeatmap(res);
-              } else {
-                let heatmapData = this.generateHeatMapData(res);
-                console.log(heatmapData);
-                this.heatmap.setData(heatmapData);
-              }
-            });
-            console.log(this.dataIndex);
-            this.dataIndex++;
-          }
-        }, 1000);
+        this.drawGeoJson(this.bikeStationsInfo);
       }
     }
   },
@@ -97,9 +83,9 @@ export default {
         infowindow.open(this.map);
       });
     },
-    drawGeoJson(geoJsonData, layer) {
-      layer = this.map.data.addGeoJson(geoJsonData);
-      layer.forEach(feature => {
+    drawGeoJson(geoJsonData) {
+      this.ubikesLayer = this.map.data.addGeoJson(geoJsonData);
+      this.ubikesLayer.forEach(feature => {
         this.map.data.setStyle(this.setPointStyle);
       });
     },
@@ -156,17 +142,38 @@ export default {
       this.heatmap.set("radius", 20);
     },
     generateDate() {
+      let test = moment().format(timeFormat);
       let nowOb = moment().tz(TAIPEI_TIMEZONE);
-      let now = nowOb.format(timeFormat);
-      let startTime = moment(now, timeFormat).format(zerobaseFormat);
+      let yesterdaty = moment()
+        .tz(TAIPEI_TIMEZONE)
+        .subtract(1, "days")
+        .format(timeFormat);
+      let startTime = moment(yesterdaty, timeFormat).format(zerobaseFormat);
       let startTimeOb = moment(startTime, timeFormat);
-      let startYear = now.slice(0, 4);
-      let startMonth = now.slice(4, 6);
-      let startDate = now.slice(6, 8);
-      let startHour = now.slice(8, 10);
+      let startYear = yesterdaty.slice(0, 4);
+      let startMonth = yesterdaty.slice(4, 6);
+      let startDate = yesterdaty.slice(6, 8);
+      let startHour = yesterdaty.slice(8, 10);
       let fileNameArray = [];
-      console.log(currentTimeZone);
-      console.log(now);
+
+      for (let i = 0; i < 24; i++) {
+        for (let j = 0; j < 6; j++) {
+          let hour = `00${i}`.slice(-2);
+          let min = `${j}0`;
+          fileNameArray.push(
+            `${startYear}${startMonth}${startDate}${hour}${min}00`
+          );
+        }
+      }
+      let today = moment()
+        .tz(TAIPEI_TIMEZONE)
+        .format(timeFormat);
+      startTime = moment(today, timeFormat).format(zerobaseFormat);
+      startTimeOb = moment(startTime, timeFormat);
+      startYear = today.slice(0, 4);
+      startMonth = today.slice(4, 6);
+      startDate = today.slice(6, 8);
+      startHour = today.slice(8, 10);
       for (let i = 0; i < parseInt(startHour); i++) {
         for (let j = 0; j < 6; j++) {
           let hour = `00${i}`.slice(-2);
@@ -176,6 +183,7 @@ export default {
           );
         }
       }
+
       return fileNameArray.map(fileName => {
         return `ubike_${fileName}.json`;
       });
@@ -185,8 +193,38 @@ export default {
         return res.data.features;
       });
     },
-    generateHeatmap() {
-      console.log("generateHeatmap");
+    removeGeoJsonPoint() {
+      this.ubikesLayer.forEach(feature => {
+        this.map.data.remove(feature);
+      });
+    },
+    generateHeatmap(payload) {
+      //if true generate the heatmap
+      if (payload) {
+        let arrayName = this.generateDate();
+        this.heatmapIntervalId = setInterval(() => {
+          if (this.dataIndex < arrayName.length) {
+            this.getGeoJsonFromFile(arrayName[this.dataIndex]).then(res => {
+              if (!this.heatmap) {
+                this.drawHeatmap(res);
+              } else {
+                let heatmapData = this.generateHeatMapData(res);
+                this.heatmap.setData(heatmapData);
+              }
+            });
+            this.dataIndex++;
+          } else {
+            this.dataIndex = 0;
+          }
+        }, 1000);
+        this.removeGeoJsonPoint();
+      }
+      //else clear the interval
+      else {
+        clearInterval(this.heatmapIntervalId);
+        this.drawGeoJson(this.bikeStationsInfo);
+        this.heatmap.setData(null);
+      }
     }
   }
 };
