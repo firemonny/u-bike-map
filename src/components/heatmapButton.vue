@@ -1,10 +1,17 @@
 <template>
     <div>
-        <button class="btn btn-primary" :class="{'btn-danger':heatmapEnable,'btn-primary': !heatmapEnable}" @click="onClickGenerateHeatmap">{{buttonText}}</button>
+        <button class="btn btn-primary" 
+        :class="{'btn-danger'
+        :heatmapEnable,'btn-primary': !heatmapEnable}" 
+        @click="onClickGenerateHeatmap">{{buttonText}}</button>
         <app-time-slider v-if="heatmapEnable" 
         :options="sliderOption"
         :heatmapStart="heatmapStart"></app-time-slider>
-        <button v-if="heatmapEnable" class="btn btn-primary" :class="{'btn-danger':heatmapStart,'btn-primary': !heatmapStart}" @click="onClickStartHeatmap">{{startButtonText}}</button>
+        <button v-if="heatmapEnable" 
+        class="btn btn-primary" 
+        :class="{'btn-danger'
+        :heatmapStart,'btn-primary': !heatmapStart}" 
+        @click="onClickStartHeatmap">{{startButtonText}}</button>
     </div>
 </template>
 <script>
@@ -35,7 +42,7 @@ export default {
       this.heatmapEnable = !this.heatmapEnable;
       if (this.heatmapEnable) {
         this.$emit("generate-heatmap", true);
-        this.buttonText = "Stop";
+        this.buttonText = "Back to Real Time Bike Station";
       } else {
         this.$emit("generate-heatmap", false);
         this.buttonText = "Generate Heat Map Animation";
@@ -104,7 +111,6 @@ export default {
           );
         }
       }
-      console.log(fileNameArray);
       return fileNameArray;
     }
   }
