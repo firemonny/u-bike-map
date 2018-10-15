@@ -41,7 +41,7 @@ export default {
             nextIndex = 0;
           }
           this.$refs.heatmapSlider.setIndex(nextIndex);
-        }, 500);
+        }, 200);
       } else {
         clearInterval(this.heatmapSliderEvent);
       }
