@@ -69,7 +69,7 @@ export default {
     initMap() {
       this.map = new google.maps.Map(document.getElementById("map"), {
         center: { lat: 25.0552145, lng: 121.5132907 },
-        zoom: 13
+        zoom: 12
       });
       // if (navigator.geolocation) {
       //   navigator.geolocation.getCurrentPosition(function(position) {

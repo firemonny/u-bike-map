@@ -4,14 +4,14 @@
         :class="{'btn-danger'
         :heatmapEnable,'btn-primary': !heatmapEnable}" 
         @click="onClickGenerateHeatmap">{{buttonText}}</button>
-        <app-time-slider v-if="heatmapEnable" 
-        :options="sliderOption"
-        :heatmapStart="heatmapStart"></app-time-slider>
         <button v-if="heatmapEnable" 
         class="btn btn-primary" 
         :class="{'btn-danger'
         :heatmapStart,'btn-primary': !heatmapStart}" 
         @click="onClickStartHeatmap">{{startButtonText}}</button>
+        <app-time-slider v-if="heatmapEnable" 
+        :options="sliderOption"
+        :heatmapStart="heatmapStart"></app-time-slider>
     </div>
 </template>
 <script>
@@ -60,7 +60,7 @@ export default {
       return {
         data: this.generateDate(),
         lazy: true,
-        reverse: true,
+        reverse: false,
         width: "100%",
         "bg-style": { background: "#8dc9e6" },
         "process-style": { background: "#8dc9e6" },
